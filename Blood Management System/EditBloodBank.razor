@@ -1,0 +1,51 @@
+﻿@page "/editbloodbank/{BloodBankID:int}"
+@inject BloodBankService BloodBankService
+@inject NavigationManager Navigation
+
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+
+@using BloodBankManager.Models
+
+<link href="/css/editbloodbank.css" rel="stylesheet" />
+
+<h3 class="ebb-header">Edit Blood Bank</h3>
+<div class="ebb-form-container">
+    <EditForm Model="@bloodbank" OnValidSubmit="HandleValidSubmit" class="ebb-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <label> Name: </label>
+        <InputText @bind-Value="bloodbank.Name" class="ebb-input" placeholder="Blood Bank Name" />
+        <label> Address: </label>
+        <InputText @bind-Value="bloodbank.Address" class="ebb-input" placeholder="Address" />
+        <label> Phone No: </label>
+        <InputText @bind-Value="bloodbank.PhoneNo" class="ebb-input" placeholder="Phone Number" />
+        <label> Location: </label>
+        <InputText @bind-Value="bloodbank.Location" class="ebb-input" placeholder="Location" />
+        <label> Website: </label>
+        <InputText @bind-Value="bloodbank.Website" class="ebb-input" placeholder="Website" />
+        <label> Email: </label>
+        <InputText @bind-Value="bloodbank.Email" class="ebb-input" placeholder="Email" />
+        <label> City: </label>
+        <InputText @bind-Value="bloodbank.City" class="ebb-input" placeholder="City" />
+
+        <button class="ebb-btn-submit" type="submit">Update</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int BloodBankID { get; set; }
+    private BloodBankModel bloodbank = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        bloodbank = await BloodBankService.GetBloodBankByIdAsync(BloodBankID);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await BloodBankService.UpdateBloodBankAsync(bloodbank);
+        Navigation.NavigateTo("/admindashboard");
+    }
+}

@@ -1,0 +1,50 @@
+﻿@page "/seekermyrequest"
+@using BloodDonationApp.Components.Shared
+@layout SeekerDasboardLayout
+@rendermode InteractiveServer
+@using RequestBloodManager.Models
+@inject RequestBloodService RequestService
+@inject UserService UserService
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-my-requests">
+    <h3>My Blood Requests</h3>
+
+    @if (requests == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in requests)
+                {
+                    <tr>
+                        <td>@r.DonorName</td>
+                        <td>@r.RequiredDate.ToShortDateString()</td>
+                        <td>@r.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<RequestBloodModel>? requests;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var seekerId = UserService.CurrentUser?.LinkedID ?? 0;
+        requests = await RequestService.GetRequestsByRoleAndIdAsync("Seeker",seekerId);
+    }
+}

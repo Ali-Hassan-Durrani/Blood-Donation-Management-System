@@ -1,0 +1,38 @@
+﻿@page "/adminsettings"
+@inject AdminService AdminService
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+@using UserManager.Models;
+
+<link href="css/admin.css" rel="stylesheet" />
+
+<h3>Update Admin Account</h3>
+
+<EditForm class="settings-form" Model="@admin" OnValidSubmit="UpdateAdmin">
+    <InputText class="form-input" @bind-Value="admin.Name" placeholder="Full Name" />
+    <InputText class="form-input" @bind-Value="admin.Username" placeholder="New Username" />
+    <InputText class="form-input" @bind-Value="admin.Password" placeholder="New Password" type="password" />
+    <button class="btn update-btn" type="submit">Update</button>        
+</EditForm>
+
+@if (message != null)
+{
+    <p class="update-message">@message</p>
+}
+@code {
+    private UserModel admin = new(); 
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        admin = await AdminService.GetCurrentAdminAsync();
+    }
+
+
+    private async Task UpdateAdmin()
+    {
+        var success = await AdminService.UpdateAdminAccountAsync(admin);
+        message = success ? "Updated successfully." : "Failed to update.";
+    }
+}

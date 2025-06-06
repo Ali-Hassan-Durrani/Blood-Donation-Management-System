@@ -1,0 +1,85 @@
+﻿@page "/Bloodbankrequest"
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@inject AdminService AdminService
+@using RequestBloodManager.Models
+
+@inject RequestBloodService RequestBloodService
+@inject InventoryService InventoryService
+
+<link href="css/admin.css" rel="stylesheet" />
+
+<h3>Approve Blood Requests (Blood Bank)</h3>
+
+@if (requests == null)
+{
+    <p><em>Loading requests...</em></p>
+}
+else if (!requests.Any())
+{
+    <div class="alert alert-info">No pending requests at the moment.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped requests-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Full Name</th>
+                <th>Requester Role</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Patient Name</th>
+                <th>Required Date</th>
+                <th>Contact</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in requests)
+            {
+                <tr>
+                    <td>@r.FullName</td>
+                    <td>@r.RequesterRole</td>
+                    <td>@r.BloodGroup</td>
+                    <td>@r.City</td>
+                    <td>@r.DonorName</td>
+                    <td>@r.RequiredDate.ToShortDateString()</td>
+                    <td>@r.ContactNumber</td>
+                    <td>
+                        <button class="btn btn-success btn-sm me-1" @onclick="() => ApproveRequest(r)">Approve</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => RejectRequest(r.RequestID)">Reject</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RequestBloodModel>? requests;
+
+    protected override async Task OnInitializedAsync()
+    {
+        requests = await AdminService.GetBloodRequestsAsync("Pending");
+    }
+
+    private async Task ApproveRequest(RequestBloodModel request)
+    {
+        // 1. Update status
+        await AdminService.UpdateRequestStatusAsync(request.RequestID, "Approved");
+
+        // 2. Decrement from Inventory
+        await InventoryService.DecrementBloodGroupAsync(request.BloodGroup);
+
+        // 3. Refresh
+        requests = await AdminService.GetBloodRequestsAsync("Pending");
+    }
+
+    private async Task RejectRequest(int id)
+    {
+        await AdminService.UpdateRequestStatusAsync(id, "Rejected");
+        requests = await AdminService.GetBloodRequestsAsync("Pending");
+    }
+}

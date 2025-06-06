@@ -1,0 +1,83 @@
+﻿@page "/signup"
+@using BloodDonationApp.Components.Shared
+@using UserManager.Models;
+@layout SignupLayout
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<link href="css/site.css" rel="stylesheet" />
+
+<div class="auth-container">
+    <div class="form-section">
+        <h3 class="form-heading">Sign Up</h3>
+        <EditForm Model="@model" OnValidSubmit="HandleSignup">
+            <DataAnnotationsValidator />
+
+            <input @bind="model.Name" placeholder="Enter Full Name Used During Registration!" class="input-field-1" />
+            <ValidationMessage For="@(() => model.Name)" class="validation-error-1" />
+
+            <input @bind="model.Username" placeholder="Username" class="input-field-1" />
+            <ValidationMessage For="@(() => model.Username)" class="validation-error-1" />
+
+            <input @bind="model.Password" placeholder="Password" type="password" class="input-field-1" />
+            <ValidationMessage For="@(() => model.Password)" class="validation-error-1" />
+
+            <InputSelect @bind-Value="model.Role" class="input-field-2">
+                <option disabled selected value="">--Select Role--</option>
+                <option value="Admin">Admin</option>
+                <option value="Seeker">Seeker</option>
+                <option value="Donor">Donor</option>
+                <option value="Hospital">Hospital</option>
+                <option value="BloodBank">Blood Bank</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => model.Role)" class="validation-error-1" />
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Sign Up</button>
+                <button type="button" class="btn-submit" @onclick="GoBack">Back</button>
+            </div>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <p class="info-message">@message</p>
+        }
+    </div>
+    <div class="image-section-1">
+        <img src="images/signup.jpg" alt="Sign Up" />
+    </div>
+</div>
+
+@code {
+    UserModel model = new();
+    string? message;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+
+    async Task HandleSignup()
+    {
+        Console.WriteLine($"[DEBUG] FullName: '{model.Name}'");
+        Console.WriteLine($"[DEBUG] Username: '{model.Username}'");
+        Console.WriteLine($"[DEBUG] Password: '{model.Password}'");
+        Console.WriteLine($"[DEBUG] Role: '{model.Role}'");
+
+        if (string.IsNullOrWhiteSpace(model.Name) ||
+            string.IsNullOrWhiteSpace(model.Username) ||
+            string.IsNullOrWhiteSpace(model.Password) ||
+            string.IsNullOrWhiteSpace(model.Role))
+        {
+            Console.WriteLine("[ERROR] One or more fields are empty.");
+            message = "Please fill in all fields.";
+            return;
+        }
+
+        var success = await UserService.RegisterAsync(model);
+        message = success ? "Signup successful!" : "Signup failed. Go Register First, Then Signup!!!";
+    }
+}
+

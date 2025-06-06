@@ -1,0 +1,70 @@
+﻿@page "/bloodbankdonors"
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@inject DonorService donorService
+@using DonorManager.Models
+
+<link href="css/BloodBankdashboard.css" rel="stylesheet" />
+
+<div class="donor-list-section">
+    <h3 class="section-title">Available Donors</h3>
+
+    @if (donors == null)
+    {
+        <p class="loading-text">Loading donors...</p>
+    }
+    else if (donors.Count == 0)
+    {
+        <div class="alert-no-donors">No available donors found at the moment.</div>
+    }
+    else
+    {
+        <div class="donor-table-container">
+            <table class="donor-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Blood Group</th>
+                        <th>First Donation</th>
+                        <th>Last Donation</th>
+                        <th>Contact No</th>
+                        <th>CNIC</th>
+                        <th>Location</th>
+                        <th>Gender</th>
+                        <th>City</th>
+                        <th>Available</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var donor in donors)
+                    {
+                        <tr>
+                            <td>@donor.Name</td>
+                            <td>@donor.BloodGroup</td>
+                            <td>@donor.FirstDonationDate.ToShortDateString()</td>
+                            <td>@donor.LastDonationDate.ToShortDateString()</td>
+                            <td>@donor.ContactNo</td>
+                            <td>@donor.CNIC</td>
+                            <td>@donor.Location</td>
+                            <td>@donor.Gender</td>
+                            <td>@donor.City</td>
+                            <td>@(donor.IsAvailable ? "Yes" : "No")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<DonorModel> donors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        donors = await donorService.GetAllDonorsAsync();
+    }
+}

@@ -1,0 +1,85 @@
+﻿@page "/login"
+@using BloodDonationApp.Components.Shared
+@layout LoginLayout
+@using UserManager.Models;
+@rendermode InteractiveServer
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+
+<link href="css/site.css" rel="stylesheet" />
+
+<div class="auth-container">
+    <div class="form-section">
+        <h3 class="form-heading">Login</h3>
+        <EditForm Model="@userModel" OnValidSubmit="HandleLogin" FormName="LoginForm" class="auth-form">
+            <input @bind="userModel.Username" placeholder="Username" class="input-field" />
+            <input @bind="userModel.Password" placeholder="Password" type="password" class="input-field" />
+
+            <div class="logbtn_group">
+                <button type="submit" class="btn-submit">Login</button>
+                <button type="button" class="btn-submit" @onclick="GoBack">Back</button>
+            </div>
+        </EditForm>
+        @if (error != null)
+        {
+            <p class="error-message">@error</p>
+        }
+    </div>
+    <div class="image-section-1">
+        <img src="images/login.jpg" alt="Login" />
+    </div>
+</div>
+
+@code {
+    UserModel userModel = new();
+    string? error;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(userModel.Username) || string.IsNullOrWhiteSpace(userModel.Password))
+        {
+            error = "Username and Password are required.";
+            return;
+        }
+
+        var result = await UserService.LoginAsync(userModel.Username, userModel.Password);
+        if (result == null)
+        {
+            error = "Invalid username or password.";
+        }
+        else
+        {
+            if (result != null)
+            {
+                UserService.CurrentUser = result;
+                switch (result.Role)
+                {
+                    case "Admin":
+                        NavigationManager.NavigateTo("/admindashboard");
+                        break;
+                    case "Seeker":
+                        NavigationManager.NavigateTo("/seekerdashboard");
+                        break;
+                    case "Donor":
+                        NavigationManager.NavigateTo("/donordashboard");
+                        break;
+                    case "Hospital":
+                        NavigationManager.NavigateTo("/hospitaldashboard");
+                        break;
+                    case "BloodBank":
+                        NavigationManager.NavigateTo("/bloodbankdashboard");
+                        break;
+                    default:
+                        error = "Unknown role.";
+                        break;
+                }
+            }
+        }
+    }
+
+}

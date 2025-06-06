@@ -1,0 +1,61 @@
+﻿@page "/seekersetting"
+@layout SeekerDasboardLayout
+@rendermode InteractiveServer
+
+@using SeekerManager.Models
+@inject SeekerService SeekerService
+@inject UserService UserService
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-settings">
+    <h3>Account Details</h3>
+
+    @if (seeker == null)
+    {
+        <p><em>Loading your account details...</em></p>
+    }
+    else
+    {
+        <dl>
+            <dt>Name:</dt>
+            <dd>@seeker.Name</dd>
+
+            <dt>Age:</dt>
+            <dd>@seeker.Age</dd>
+
+            <dt>City:</dt>
+            <dd>@seeker.City</dd>
+
+            <dt>Blood Group:</dt>
+            <dd>@seeker.BloodGroup</dd>
+
+            <dt>Contact Number:</dt>
+            <dd>@seeker.ContactNo</dd>
+
+            <dt>CNIC:</dt>
+            <dd>@seeker.CNIC</dd>
+
+            <dt>Gender:</dt>
+            <dd>@seeker.Gender</dd>
+
+            <dt>Registered On:</dt>
+            <dd>@seeker.RegistrationDate.ToString("dd MMM yyyy")</dd>
+        </dl>
+    }
+</div>
+
+@code {
+    private SeekerModel? seeker;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var seekerId = GetCurrentSeekerId();
+        if (seekerId > 0)
+        {
+            seeker = await SeekerService.GetSeekerByIdAsync(seekerId);
+        }
+    }
+
+    private int GetCurrentSeekerId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

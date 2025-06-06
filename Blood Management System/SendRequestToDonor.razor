@@ -1,0 +1,75 @@
+﻿@page "/Bloodbanksendrequest"
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@inject DonorService DonorService
+@inject DonationRequestService DonationRequestService
+@inject UserService UserService
+
+@using DonorManager.Models
+
+<link href="css/RequestDonor.css" rel="stylesheet" />
+
+<div class="bb-send-request-container">
+    <h3 class="bb-send-request-title">Send Donation Request</h3>
+
+    <div class="bb-form-group">
+        <label class="bb-label">Select Blood Group:</label>
+        <select class="bb-select" @onchange="OnBloodGroupChanged">
+            <option value="">--Select--</option>
+            @foreach (var group in bloodGroups)
+            {
+                <option value="@group">@group</option>
+            }
+        </select>
+    </div>
+
+    @if (filteredDonors?.Any() == true)
+    {
+        <h4 class="bb-donor-list-title">Available Donors</h4>
+        <ul class="bb-donor-list">
+            @foreach (var donor in filteredDonors)
+            {
+                <li class="bb-donor-item">
+                    <span class="bb-donor-name">@donor.Name</span>
+                    <span class="bb-donor-city">(@donor.City)</span>
+                    <input class="bb-message-input" type="text" @bind="donorMessage[donor.DonorID]" placeholder="Enter message" />
+                    <button class="bb-send-button" @onclick="() => SendRequest(donor.DonorID)">Send</button>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="bb-success-message">@successMessage</div>
+    }
+</div>
+
+@code {
+    private string? selectedBloodGroup;
+    private List<string> bloodGroups = new() { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+    private List<DonorModel>? filteredDonors;
+    private Dictionary<int, string> donorMessage = new();
+    private string? successMessage;
+
+    private async Task OnBloodGroupChanged(ChangeEventArgs e)
+    {
+        selectedBloodGroup = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(selectedBloodGroup))
+        {
+            filteredDonors = await DonorService.GetDonorsByBloodGroupAsync(selectedBloodGroup);
+            donorMessage = filteredDonors.ToDictionary(d => d.DonorID, d => "");
+        }
+    }
+
+    private async Task SendRequest(int donorId)
+    {
+        var message = donorMessage.GetValueOrDefault(donorId);
+        var bloodBankId = UserService.CurrentUser?.LinkedID ?? 0;
+
+        bool sent = await DonationRequestService.SendRequestAsync(donorId, bloodBankId, message ?? "");
+        successMessage = sent ? "Request sent successfully." : "Failed to send request.";
+    }
+}

@@ -1,0 +1,77 @@
+﻿@page "/seekerdashboard"
+@using BloodDonationApp.Components.Shared
+@layout SeekerDasboardLayout
+@rendermode InteractiveServer
+
+@inject SeekerService SeekerService
+@inject RequestBloodService RequestBloodService
+@inject UserService UserService
+@using SeekerManager.Models
+@using RequestBloodManager.Models
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-dashboard">
+    <h3>Welcome, @seeker?.Name</h3>
+
+    <p>Here is your profile summary:</p>
+
+    @if (seeker != null)
+    {
+        <ul>
+            <li><strong>Blood Group:</strong> @seeker.BloodGroup</li>
+            <li><strong>City:</strong> @seeker.City</li>
+            <li><strong>Contact:</strong> @seeker.ContactNo</li>
+            <li><strong>Registered on:</strong> @seeker.RegistrationDate.ToShortDateString()</li>
+        </ul>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <h4>Total Requests</h4>
+                <strong>@totalRequests</strong>
+            </div>
+            <div class="card">
+                <h4>Approved</h4>
+                <strong>@approvedCount</strong>
+            </div>
+            <div class="card">
+                <h4>Pending</h4>
+                <strong>@pendingCount</strong>
+            </div>
+            <div class="card">
+                <h4>Rejected</h4>
+                <strong>@rejectedCount</strong>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+@code {
+    private SeekerModel? seeker;
+    private List<RequestBloodModel> myRequests = new();
+    private int totalRequests = 0;
+    private int approvedCount = 0;
+    private int pendingCount = 0;
+    private int rejectedCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var seekerId = GetCurrentSeekerId();
+        if (seekerId > 0)
+        {
+            seeker = await SeekerService.GetSeekerByIdAsync(seekerId);
+
+            myRequests = await RequestBloodService.GetRequestsByRoleAndIdAsync("Seeker",seekerId);
+            totalRequests = myRequests.Count;
+            approvedCount = myRequests.Count(r => r.Status == "Approved");
+            pendingCount = myRequests.Count(r => r.Status == "Pending");
+            rejectedCount = myRequests.Count(r => r.Status == "Rejected");
+        }
+    }
+
+    private int GetCurrentSeekerId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

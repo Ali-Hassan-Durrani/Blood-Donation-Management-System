@@ -1,0 +1,61 @@
+﻿@page "/editdonor/{DonorID:int}"
+@inject DonorService DonorService
+@inject NavigationManager Navigation
+
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+
+@using DonorManager.Models
+
+<link href="/css/editdonor.css" rel="stylesheet" />
+
+<h3 class="edr-header">Edit Donor</h3>
+<div class="edr-form-container">
+    <EditForm Model="@donor" OnValidSubmit="HandleValidSubmit" class="edr-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <label> Full Name: </label>
+        <InputText @bind-Value="donor.Name" class="edr-input" placeholder="Full Name" />
+        <label> Blood Group: </label>
+        <InputText @bind-Value="donor.BloodGroup" class="edr-input" placeholder="Blood Group" />
+        <label> First Donation Date: </label>
+        <InputDate @bind-Value="donor.FirstDonationDate" class="edr-input" />
+        <label> Last Donation Date: </label>
+        <InputDate @bind-Value="donor.LastDonationDate" class="edr-input" />
+        <label> Contact No: </label>
+        <InputText @bind-Value="donor.ContactNo" class="edr-input" placeholder="Contact Number" />
+        <label> CNIC: </label>
+        <InputText @bind-Value="donor.CNIC" class="edr-input" placeholder="CNIC" />
+        <label> Location: </label>
+        <InputText @bind-Value="donor.Location" class="edr-input" placeholder="Location" />
+        <label> Gender: </label>
+        <InputText @bind-Value="donor.Gender" class="edr-input" placeholder="Gender" />
+        <label> City: </label>
+        <InputText @bind-Value="donor.City" class="edr-input" placeholder="City" />
+
+        <div class="edr-checkbox-container">
+            <InputCheckbox @bind-Value="donor.IsAvailable" class="edr-checkbox" id="isAvailableCheckbox" />
+            <label class="edr-checkbox-label" for="isAvailableCheckbox">Available to Donate</label>
+        </div>
+
+        <button class="edr-btn-submit" type="submit">Update</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int DonorID { get; set; }
+    private DonorModel donor = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        donor = await DonorService.GetDonorByIdAsync(DonorID);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await DonorService.UpdateDonorAsync(donor);
+        Navigation.NavigateTo("/admindashboard");
+    }
+}

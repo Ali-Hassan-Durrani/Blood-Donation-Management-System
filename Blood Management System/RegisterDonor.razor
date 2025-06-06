@@ -1,0 +1,141 @@
+﻿@using BloodDonationApp.Components.Shared
+@layout DonorLayout
+@page "/donor-registration"
+@inject DonorService DonorService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@using DonorManager.Models;
+
+<link href="css/donor.css" rel="stylesheet" />
+
+<h3 class="donor-heading">Donor Registration</h3>
+
+<EditForm Model="@donor" OnValidSubmit="@HandleValidSubmit" FormName="donorForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Full Name</label>
+        <input placeholder="Full Name" class="form-control" @bind="donor.Name" />
+    </div>
+
+    <div class="form-group">
+        <label>Blood Group</label>
+        <InputSelect class="form-control" @bind-Value="donor.BloodGroup">
+            <option value="">-- Select Blood Group --</option>
+            @foreach (var bg in BloodGroups)
+            {
+                <option value="@bg.Value">@bg.Value</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>First Donation Date</label>
+        <input placeholder="First Donation date" type="date" class="form-control" @bind="donor.FirstDonationDate" />
+    </div>
+
+    <div class="form-group">
+        <label>Last Donation Date</label>
+        <input placeholder="Last Donation date" type="date" class="form-control" @bind="donor.LastDonationDate" />
+    </div>
+
+    <div class="form-group">
+        <label>Contact No</label>
+        <input placeholder="Contact No" class="form-control" @bind="donor.ContactNo" />
+    </div>
+
+    <div class="form-group">
+        <label>CNIC</label>
+        <input placeholder="CNIC" class="form-control" @bind="donor.CNIC" />
+    </div>
+
+    <div class="form-group">
+        <label>Location</label>
+        <input placeholder="Location" class="form-control" @bind="donor.Location" />
+    </div>
+
+    <div class="form-group">
+        <label>Gender:</label>
+        <InputSelect class="form-control" @bind-Value="donor.Gender">
+            <option value="">-- Select Gender --</option>
+            @foreach (var gender in genders)
+            {
+                <option value="@gender.Value">@gender.Value</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>City</label>
+        <InputSelect class="form-control" @bind-Value="donor.City">
+            <option value="">-- Select City --</option>
+            @foreach (var c in Cities)
+            {
+                <option value="@c">@c</option>
+            }
+        </InputSelect>
+    </div>
+
+    <!-- Added IsAvailable Checkbox -->
+    <div class="form-check mt-3">
+        <InputCheckbox @bind-Value="donor.IsAvailable" class="form-check-input" id="isAvailableCheckbox" />
+        <label class="form-check-label" for="isAvailableCheckbox">Available to Donate</label>
+    </div>
+
+
+    <div class="logbtn_group">
+        <button type="submit">Register</button>
+        <button type="submit" @onclick="GoBack">Back</button>
+    </div>
+
+    @if (isRegistered)
+    {
+        <p class="text-success mt-3 text-center">Donor registered successfully!</p>
+    }
+</EditForm>
+
+@code {
+    DonorModel donor = new();
+    List<KeyValuePair<int, string>> BloodGroups = new();
+    List<KeyValuePair<int, string>> genders = new();
+    List<string> Cities = new();
+    string selectedGender = string.Empty;
+    bool isRegistered = false;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        BloodGroups = await DonorService.GetBloodGroupsAsync();
+        genders = await DonorService.GetGendersAsync();
+        Cities = await DonorService.GetCitiesAsync();
+    }
+
+    async Task HandleValidSubmit()
+    {
+        Console.WriteLine("✓ Valid submit received");
+        Console.WriteLine($"  FullName       = '{donor.Name}'");
+        Console.WriteLine($"  BloodGroup     = '{donor.BloodGroup}'");
+        Console.WriteLine($"  First Donation Date         = '{donor.FirstDonationDate}'");
+        Console.WriteLine($"  Last Donation Date          = '{donor.LastDonationDate}'");
+        Console.WriteLine($"  ContactNo      = '{donor.ContactNo}'");
+        Console.WriteLine($"  CNIC           = '{donor.CNIC}'");
+        Console.WriteLine($"  Location            = {donor.Location}");
+        Console.WriteLine($"  Gender         = '{donor.Gender}'");
+        Console.WriteLine($"  City           = '{donor.City}'");
+        Console.WriteLine($"  IsAvailable    = '{donor.IsAvailable}'");
+
+        bool success = await DonorService.RegisterDonorAsync(donor);
+        if (success)
+        {
+            isRegistered = true;
+            donor = new();
+            selectedGender = string.Empty;
+        }
+    }
+}

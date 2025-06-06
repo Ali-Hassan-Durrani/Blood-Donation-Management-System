@@ -1,0 +1,67 @@
+﻿@page "/donorsetting"
+@layout DonorDasboardLayout
+@rendermode InteractiveServer
+
+@using DonorManager.Models
+@inject DonorService DonorService
+@inject UserService UserService
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-settings">
+    <h3>Account Details</h3>
+
+    @if (donor == null)
+    {
+        <p><em>Loading your account details...</em></p>
+    }
+    else
+    {
+        <dl>
+            <dt>Name:</dt>
+            <dd>@donor.Name</dd>
+
+            <dt>BloodGroup:</dt>
+            <dd>@donor.BloodGroup</dd>
+
+            <dt>FirstDonationDate:</dt>
+            <dd>@donor.FirstDonationDate.ToString("dd MMM yyyy")</dd>
+
+            <dt>LastDonationDate:</dt>
+            <dd>@donor.LastDonationDate.ToString("dd MMM yyyy")</dd>
+
+            <dt>Contact Number:</dt>
+            <dd>@donor.ContactNo</dd>
+
+            <dt>CNIC:</dt>
+            <dd>@donor.CNIC</dd>
+
+            <dt>Location:</dt>
+            <dd>@donor.Location</dd>
+
+            <dt>Gender:</dt>
+            <dd>@donor.Gender</dd>
+
+            <dt>City:</dt>
+            <dd>@donor.City</dd>
+
+            <dt>IsAvailable:</dt>
+            <dd>@donor.IsAvailable</dd>
+        </dl>
+    }
+</div>
+
+@code {
+    private DonorModel? donor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var donorId = GetCurrentDonorId();
+        if (donorId > 0)
+        {
+            donor = await DonorService.GetDonorByIdAsync(donorId);
+        }
+    }
+
+    private int GetCurrentDonorId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

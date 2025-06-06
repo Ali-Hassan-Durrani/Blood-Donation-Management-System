@@ -1,0 +1,53 @@
+﻿@page "/editseeker/{SeekerID:int}"
+@inject SeekerService seekerService
+@inject NavigationManager NavigationManager
+
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+
+@using SeekerManager.Models
+
+<link href="/css/editseeker.css" rel="stylesheet" />
+
+<h3 class="esk-header">Edit Seeker</h3>
+
+<div class="esk-form-container">
+    <EditForm Model="seeker" OnValidSubmit="UpdateSeeker" class="esk-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <label> Full Name: </label>
+        <InputText @bind-Value="seeker.Name" class="esk-input" placeholder="Name" />
+        <label> Age: </label>
+        <InputNumber @bind-Value="seeker.Age" class="esk-input" placeholder="Age" />
+        <label> City: </label>
+        <InputText @bind-Value="seeker.City" class="esk-input" placeholder="City" />
+        <label> Blood Group: </label>
+        <InputText @bind-Value="seeker.BloodGroup" class="esk-input" placeholder="Blood Group" />
+        <label> Contact No: </label>
+        <InputText @bind-Value="seeker.ContactNo" class="esk-input" placeholder="Contact No" />
+        <label> CNIC: </label>
+        <InputText @bind-Value="seeker.CNIC" class="esk-input" placeholder="CNIC" />
+         <label> Gender: </label>
+        <InputText @bind-Value="seeker.Gender" class="esk-input" placeholder="Gender" />
+
+        <button type="submit" class="esk-btn-submit">Update</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int SeekerID { get; set; }
+    private SeekerModel seeker = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        seeker = await seekerService.GetSeekerByIdAsync(SeekerID);
+    }
+
+    private async Task UpdateSeeker()
+    {
+        await seekerService.UpdateSeekerAsync(seeker);
+        NavigationManager.NavigateTo("/admindashboard");
+    }
+}

@@ -1,0 +1,60 @@
+﻿@page "/bloodbanksetting"
+
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@using BloodBankManager.Models
+@inject BloodBankService BloodBankService
+@inject UserService UserService
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-settings">
+    <h3>Account Details</h3>
+
+    @if (bloodbank == null)
+    {
+        <p><em>Loading your account details...</em></p>
+    }
+    else
+    {
+        <dl>
+            <dt>Name:</dt>
+            <dd>@bloodbank.Name</dd>
+
+            <dt>Address:</dt>
+            <dd>@bloodbank.Address</dd>
+
+            <dt>PhoneNo:</dt>
+            <dd>@bloodbank.PhoneNo</dd>
+
+            <dt>Location:</dt>
+            <dd>@bloodbank.Location</dd>
+
+            <dt>Website:</dt>
+            <dd>@bloodbank.Website</dd>
+
+            <dt>Email:</dt>
+            <dd>@bloodbank.Email</dd>
+
+            <dt>City:</dt>
+            <dd>@bloodbank.City</dd>
+        </dl>
+    }
+</div>
+
+@code {
+    private BloodBankModel? bloodbank;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var bloodbankId = GetCurrentBloodBankId();
+        if (bloodbankId > 0)
+        {
+            bloodbank = await BloodBankService.GetBloodBankByIdAsync(bloodbankId);
+        }
+    }
+
+    private int GetCurrentBloodBankId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

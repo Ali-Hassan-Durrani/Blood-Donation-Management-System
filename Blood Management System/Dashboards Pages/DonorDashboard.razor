@@ -1,0 +1,86 @@
+﻿@page "/donordashboard"
+@using BloodDonationApp.Components.Shared
+@layout DonorDasboardLayout
+@rendermode InteractiveServer
+
+@inject DonorService DonorService
+@inject UserService UserService
+
+@using DonorManager.Models
+
+<link href="css/donordashboard.css" rel="stylesheet" />
+
+<div class="donor-dashboard">
+    <h3>Welcome, @donor?.Name</h3>
+
+    <p>Here is your profile summary:</p>
+
+    @if (donor != null)
+    {
+        <ul>
+            <li><strong>Blood Group:</strong> @donor.BloodGroup</li>
+            <li><strong>City:</strong> @donor.City</li>
+            <li><strong>Contact:</strong> @donor.ContactNo</li>
+            <li><strong>Last Donation:</strong> @donor.LastDonationDate.ToString("yyyy-MM-dd")</li>
+            <li>
+                <strong>Available to Donate:</strong>
+                <InputCheckbox @bind-Value="donor.IsAvailable" @onchange="OnAvailabilityChanged" />
+            </li>
+        </ul>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <h4>Total Donations</h4>
+                <strong>@totalDonations</strong>
+            </div>
+            <div class="card">
+                <h4>Approved</h4>
+                <strong>@approvedCount</strong>
+            </div>
+            <div class="card">
+                <h4>Rejected</h4>
+                <strong>@rejectedCount</strong>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>Loading donor data...</p>
+    }
+
+    @if (!string.IsNullOrEmpty(updateMessage))
+    {
+        <div class="alert alert-success mt-2">@updateMessage</div>
+    }
+</div>
+
+@code {
+    private DonorModel? donor;
+    private int totalDonations = 0;
+    private int approvedCount = 0;
+    private int rejectedCount = 0;
+    private string? updateMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var donorId = GetCurrentDonorId();
+        if (donorId > 0)
+        {
+            donor = await DonorService.GetDonorByIdAsync(donorId);
+            totalDonations = await DonorService.GetTotalDonationsAsync(donorId);
+            approvedCount = await DonorService.GetApprovedRequestCountAsync(donorId);
+            rejectedCount = await DonorService.GetRejectedRequestCountAsync(donorId);
+        }
+    }
+
+    private async Task OnAvailabilityChanged(ChangeEventArgs e)
+    {
+        if (donor != null)
+        {
+            bool updated = await DonorService.UpdateDonorAsync(donor);
+            updateMessage = updated ? "Availability updated successfully." : "Failed to update.";
+        }
+    }
+
+    private int GetCurrentDonorId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

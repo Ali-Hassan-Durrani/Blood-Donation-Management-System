@@ -1,0 +1,53 @@
+﻿@page "/edithospital/{HospitalID:int}"
+@inject HospitalService HospitalService
+@inject NavigationManager Navigation
+
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+
+@using HospitalManager.Models
+
+<link href="/css/edithospital.css" rel="stylesheet" />
+
+<h3 class="ehp-header">Edit Hospital</h3>
+
+<div class="ehp-form-container">
+    <EditForm Model="@hospital" OnValidSubmit="HandleValidSubmit" class="ehp-form">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <label> Name: </label>
+        <InputText @bind-Value="hospital.Name" class="ehp-input" placeholder="Hospital Name" />
+        <label> Address: </label>
+        <InputText @bind-Value="hospital.Address" class="ehp-input" placeholder="Address" />
+        <label> Phone No: </label>
+        <InputText @bind-Value="hospital.PhoneNo" class="ehp-input" placeholder="Phone Number" />
+        <label> Location: </label>
+        <InputText @bind-Value="hospital.Location" class="ehp-input" placeholder="Location" />
+        <label> Website: </label>
+        <InputText @bind-Value="hospital.Website" class="ehp-input" placeholder="Website" />
+        <label> Email: </label>
+        <InputText @bind-Value="hospital.Email" class="ehp-input" placeholder="Email" />
+        <label> City: </label>
+        <InputText @bind-Value="hospital.City" class="ehp-input" placeholder="City" />
+
+        <button class="ehp-btn-submit" type="submit">Update</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int HospitalID { get; set; }
+    private HospitalModel hospital = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        hospital = await HospitalService.GetHospitalByIdAsync(HospitalID);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await HospitalService.UpdateHospitalAsync(hospital);
+        Navigation.NavigateTo("/admindashboard");
+    }
+}

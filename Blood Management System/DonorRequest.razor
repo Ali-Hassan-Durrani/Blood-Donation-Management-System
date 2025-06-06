@@ -1,0 +1,122 @@
+﻿@page "/donordonationrequest"
+
+@using BloodDonationApp.Components.Shared
+@layout DonorDasboardLayout
+@rendermode InteractiveServer
+
+@inject DonationRequestService DonationRequestService
+@inject DonorService DonorService
+@inject NotificationService NotificationService
+@inject UserService UserService
+@inject DonationService DonationService
+
+<link href="css/donordashboard.css" rel="stylesheet" />
+
+<div class="donor-donation-requests">
+    <h3>Donation Requests</h3>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (requests == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!requests.Any())
+    {
+        <p>No requests available.</p>
+    }
+    else
+    {
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var req in requests)
+                {
+                    <tr>
+                        <td>@req.Message</td>
+                        <td>@req.RequestDate.ToShortDateString()</td>
+                        <td>@req.Status</td>
+                        <td>
+                            @if (req.Status == "Pending")
+                            {
+                                <button class="btn-success-sm" @onclick="() => RespondToRequest(req.RequestID, true)">Donate</button>
+                                <button class="btn-danger-sm" @onclick="() => RespondToRequest(req.RequestID, false)">Reject</button>
+                            }
+                            else
+                            {
+                                <span>@req.Status</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<DonationRequestModel> requests = new();
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var donorId = UserService.CurrentUser?.LinkedID ?? 0;
+        requests = await DonationRequestService.GetRequestsForDonorAsync(donorId);
+    }
+
+    private async Task RespondToRequest(int requestId, bool accept)
+    {
+        int donorId = UserService.CurrentUser?.LinkedID ?? 0;
+        var requestInfo = await DonationRequestService.GetRequestInfoAsync(requestId);
+
+        if (requestInfo == null)
+        {
+            errorMessage = "Request not found.";
+            return;
+        }
+
+        int bloodBankId = requestInfo.Value.BloodBankId;
+        var donor = await DonorService.GetDonorByIdAsync(donorId);
+        string donorName = donor?.Name ?? $"#{donorId}";
+
+        if (accept)
+        {
+            bool donationAdded = await DonationService.AddDonationAsync(donorId, bloodBankId, DateTime.Now);
+            if (!donationAdded)
+            {
+                errorMessage = "Failed to record donation.";
+                return;
+            }
+
+            await DonationRequestService.UpdateRequestStatusAsync(requestId, "Accepted");
+            await DonorService.UpdateLastDonationDateAsync(donorId);
+            string msg = $"Donor {donorName} has accepted the donation request.";
+            await NotificationService.SendNotificationAsync(bloodBankId, donorId, msg);
+            successMessage = "Donation recorded and notification sent.";
+        }
+        else
+        {
+            await DonationRequestService.UpdateRequestStatusAsync(requestId, "Rejected");
+            string msg = $"Donor {donorName} has rejected the donation request.";
+            await NotificationService.SendNotificationAsync(bloodBankId, donorId, msg);
+            successMessage = "Donation request rejected and blood bank notified.";
+        }
+
+        await OnInitializedAsync();
+    }
+}

@@ -1,0 +1,354 @@
+﻿@page "/admindashboard"
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+@using SeekerManager.Models
+@using DonorManager.Models
+@using HospitalManager.Models
+@using BloodBankManager.Models
+
+@inject AdminService adminService
+@inject SeekerService seekerService
+@inject DonorService donorService
+@inject HospitalService hospitalService
+@inject BloodBankService bloodBankService
+
+<link href="css/admin.css" rel="stylesheet"/>
+
+<h2>Welcome to the Admin Dashboard</h2>
+
+@if (stats != null)
+{
+    <ul class="admin-stats-list">
+        @foreach (var stat in stats)
+        {
+            <li class="stat-card">@stat.Key.Replace("Table", ""): <strong>@stat.Value</strong></li>
+        }
+    </ul>
+}
+else
+{
+    <p>Loading stats...</p>
+}
+
+<h3>Seeker Details</h3>
+@if (seekers != null)
+{
+    <table class="table users-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>City</th>
+                <th>Blood Group</th>
+                <th>Contact No</th>
+                <th>CNIC</th>
+                <th>Gender</th>
+                <th>Registration Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var seeker in seekers)
+            {
+                <tr>
+                    <td>@seeker.Name</td>
+                    <td>@seeker.Age</td>
+                    <td>@seeker.City</td>
+                    <td>@seeker.BloodGroup</td>
+                    <td>@seeker.ContactNo</td>
+                    <td>@seeker.CNIC</td>
+                    <td>@seeker.Gender</td>
+                    <td>@seeker.RegistrationDate.ToShortDateString()</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EditSeeker(seeker.SeekerID)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteSeeker(seeker.SeekerID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showDeleteMessage)
+    {
+        <div class="alert alert-info">@deleteMessage</div>
+    }
+
+}
+else
+{
+    <p>Loading seeker data...</p>
+}
+
+<h3>Donor Details</h3>
+@if (donors != null)
+{
+    <table class="table users-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>BloodGroup</th>
+                <th>FirstDonationDate</th>
+                <th>LastDonationDate</th>
+                <th>Contact No</th>
+                <th>CNIC</th>
+                <th>Location</th>
+                <th>Gender</th>
+                <th>City</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donor in donors)
+            {
+                <tr>
+                    <td>@donor.Name</td>
+                    <td>@donor.BloodGroup</td>
+                    <td>@donor.FirstDonationDate.ToShortDateString()</td>
+                    <td>@donor.LastDonationDate.ToShortDateString()</td>
+                    <td>@donor.ContactNo</td>
+                    <td>@donor.CNIC</td>
+                    <td>@donor.Location</td>
+                    <td>@donor.Gender</td>
+                    <td>@donor.City</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EditDonor(donor.DonorID)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteDonor(donor.DonorID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showDeleteMessage)
+    {
+        <div class="alert alert-info">@deleteMessage</div>
+    }
+
+}
+else
+{
+    <p>Loading seeker data...</p>
+}
+
+<h3>Hospital Details</h3>
+@if (hospitals != null)
+{
+    <table class="table users-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>PhoneNo</th>
+                <th>Location</th>
+                <th>Website</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var hospital in hospitals)
+            {
+                <tr>
+                    <td>@hospital.Name</td>
+                    <td>@hospital.Address</td>
+                    <td>@hospital.PhoneNo</td>
+                    <td>@hospital.Location</td>
+                    <td>@hospital.Website</td>
+                    <td>@hospital.Email</td>
+                    <td>@hospital.City</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EditHospital(hospital.HospitalID)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteHospital(hospital.HospitalID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showDeleteMessage)
+    {
+        <div class="alert alert-info">@deleteMessage</div>
+    }
+
+}
+else
+{
+    <p>Loading seeker data...</p>
+}
+<h3>Blood bank Details</h3>
+@if (bloodBanks != null)
+{
+    <table class="table users-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>PhoneNo</th>
+                <th>Location</th>
+                <th>Website</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bloodBank in bloodBanks)
+            {
+                <tr>
+                    <td>@bloodBank.Name</td>
+                    <td>@bloodBank.Address</td>
+                    <td>@bloodBank.PhoneNo</td>
+                    <td>@bloodBank.Location</td>
+                    <td>@bloodBank.Website</td>
+                    <td>@bloodBank.Email</td>
+                    <td>@bloodBank.City</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EditBloodBank(bloodBank.BloodBankID)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteBloodBank(bloodBank.BloodBankID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showDeleteMessage)
+    {
+        <div class="alert alert-info">@deleteMessage</div>
+    }
+
+}
+else
+{
+    <p>Loading seeker data...</p>
+}
+@code {
+    private Dictionary<string, int> stats = new();
+    private List<SeekerModel> seekers = new();
+    private string deleteMessage = string.Empty;
+    private bool showDeleteMessage = false;
+    private List<DonorModel> donors = new();
+    private List<HospitalModel> hospitals = new();
+    private List<BloodBankModel> bloodBanks = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await adminService.GetAdminDashboardStatsAsync();
+        seekers = await seekerService.GetAllSeekersAsync();
+        donors = await donorService.GetAllDonorsAsync();
+        hospitals = await hospitalService.GetAllHospitalsAsync();
+        bloodBanks = await bloodBankService.GetAllBloodBanksAsync();
+    }
+
+    /* SEEKER */
+    private async Task DeleteSeeker(int seekerId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete seeker with ID {seekerId}?"))
+        {
+            return;
+        }
+
+        bool isDeleted = await seekerService.DeleteSeekerAsync(seekerId);
+        if (isDeleted)
+        {
+            seekers = await seekerService.GetAllSeekersAsync();
+            deleteMessage = $"Seeker with ID {seekerId} has been deleted successfully.";
+        }
+        else
+        {
+            deleteMessage = $"Failed to delete seeker with ID {seekerId}.";
+        }
+
+        showDeleteMessage = true;
+    }
+
+    private void EditSeeker(int seekerId)
+    {
+        NavigationManager.NavigateTo($"/editseeker/{seekerId}");
+    }
+
+    /* DONOR */
+    private async Task DeleteDonor(int donorId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete donor with ID {donorId}?"))
+        {
+            return;
+        }
+
+        bool isDeleted = await donorService.DeleteDonorAsync(donorId);
+        if (isDeleted)
+        {
+            donors = await donorService.GetAllDonorsAsync();
+            deleteMessage = $"Donor with ID {donorId} has been deleted successfully.";
+        }
+        else
+        {
+            deleteMessage = $"Failed to delete Donor with ID {donorId}.";
+        }
+
+        showDeleteMessage = true;
+    }
+
+    private void EditDonor(int donorId)
+    {
+        NavigationManager.NavigateTo($"/editdonor/{donorId}");
+    }
+
+    /* Hospital */
+    private async Task DeleteHospital(int hospitalId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to Hospital with ID {hospitalId}?"))
+        {
+            return;
+        }
+
+        bool isDeleted = await hospitalService.DeleteHospitalAsync(hospitalId);
+        if (isDeleted)
+        {
+            hospitals = await hospitalService.GetAllHospitalsAsync();
+            deleteMessage = $"Hospital with ID {hospitalId} has been deleted successfully.";
+        }
+        else
+        {
+            deleteMessage = $"Failed to delete Hospital with ID {hospitalId}.";
+        }
+
+        showDeleteMessage = true;
+    }
+
+    private void EditHospital(int hospitalId)
+    {
+        NavigationManager.NavigateTo($"/edithospital/{hospitalId}");
+    }
+
+    /* Blood Bank*/
+    private async Task DeleteBloodBank(int bloodbankId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to BloodBank with ID {bloodbankId}?"))
+        {
+            return;
+        }
+
+        bool isDeleted = await bloodBankService.DeleteBloodBankAsync(bloodbankId);
+        if (isDeleted)
+        {
+            bloodBanks = await bloodBankService.GetAllBloodBanksAsync();
+            deleteMessage = $"Blood Bank with ID {bloodbankId} has been deleted successfully.";
+        }
+        else
+        {
+            deleteMessage = $"Failed to delete Blood Bank with ID {bloodbankId}.";
+        }
+
+        showDeleteMessage = true;
+    }
+
+    private void EditBloodBank(int bloodbankId)
+    {
+        NavigationManager.NavigateTo($"/editbloodbank/{bloodbankId}");
+    }
+    @inject IJSRuntime JSRuntime
+}

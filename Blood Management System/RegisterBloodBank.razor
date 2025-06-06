@@ -1,0 +1,104 @@
+﻿@using BloodBankManager.Models
+@using BloodDonationApp.Components.Shared
+@layout BloodBankLayout
+@page "/bloodbank-registration"
+@inject BloodBankService BloodBankService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+
+<link href="css/bloodbank.css" rel="stylesheet" />
+<h3 class="bloodbank-heading">Blood Bank Registration</h3>
+
+<EditForm Model="@bloodBank" OnValidSubmit="HandleValidSubmit" FormName="bloodBankForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-container">
+        <div class="form-group">
+            <label>Blood Bank Name</label>
+            <input placeholder="Blood Bank Name" @bind="bloodBank.Name" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Address</label>
+            <input placeholder="Address" @bind="bloodBank.Address" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input placeholder="Phone No" @bind="bloodBank.PhoneNo" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Location</label>
+            <input placeholder="Location" @bind="bloodBank.Location" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Website (optional)</label>
+            <input placeholder="Website" @bind="bloodBank.Website" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input placeholder="Email" @bind="bloodBank.Email" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>City</label>
+            <InputSelect @bind-Value="bloodBank.City" class="form-control">
+                <option value="">-- Select City --</option>
+                @foreach (var city in cities)
+                {
+                    <option value="@city">@city</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="logbtn_group">
+            <button type="submit">Register</button>
+            <button type="submit" @onclick="GoBack">Back</button>
+        </div>
+    </div>
+</EditForm>
+
+@if (isRegistered)
+{
+    <div class="text-success">Blood bank registered successfully!</div>
+}
+
+@code {
+    BloodBankModel bloodBank = new();
+    List<string> cities = new();
+    bool isRegistered = false;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        cities = await BloodBankService.GetCitiesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Console.WriteLine("✓ Valid submit received");
+        Console.WriteLine($"  Blood Bank Name       = '{bloodBank.Name}'");
+        Console.WriteLine($"  Address            = {bloodBank.Address}");
+        Console.WriteLine($"  phone No           = '{bloodBank.PhoneNo}'");
+        Console.WriteLine($"  Location     = '{bloodBank.Location}'");
+        Console.WriteLine($"  Webiste      = '{bloodBank.Website}'");
+        Console.WriteLine($"  Email           = '{bloodBank.Email}'");
+        Console.WriteLine($"  City         = '{bloodBank.City}'");
+ 
+        bool success = await BloodBankService.RegisterBloodBankAsync(bloodBank);
+        if (success)
+        {
+            isRegistered = true;
+            bloodBank = new();
+        }
+    }
+}

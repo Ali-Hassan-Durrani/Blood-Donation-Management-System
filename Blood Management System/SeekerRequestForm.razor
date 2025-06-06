@@ -1,0 +1,47 @@
+﻿@page "/seekerrequest"
+@using BloodDonationApp.Components.Shared
+@layout SeekerDasboardLayout
+@rendermode InteractiveServer
+
+@inject RequestBloodService RequestService
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+@using RequestBloodManager.Models
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-request-form">
+    <h3>Blood Request Form</h3>
+
+    <EditForm Model="requestModel" OnValidSubmit="SubmitRequest">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="seeker-form">
+            <input @bind="requestModel.FullName" class="form-control" placeholder="Full Name" />
+            <input @bind="requestModel.BloodGroup" class="form-control" placeholder="Blood Group" />
+            <input @bind="requestModel.City" class="form-control" placeholder="City" />
+            <input @bind="requestModel.DonorName" class="form-control" placeholder="Patient Name" />
+            <input @bind="requestModel.RequiredDate" class="form-control" />
+            <input @bind="requestModel.ContactNumber" class="form-control" placeholder="Contact Number" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </EditForm>
+</div>
+
+@code {
+    private RequestBloodModel requestModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        requestModel.RequesterRole = UserService.CurrentUser?.Role ?? "";
+        requestModel.RequesterID = UserService.CurrentUser?.LinkedID ?? 0;
+        requestModel.Status = "Pending";
+    }
+
+    private async Task SubmitRequest()
+    {
+        await RequestService.AddRequestAsync(requestModel);
+        NavigationManager.NavigateTo("/seekermyrequest");
+    }
+}

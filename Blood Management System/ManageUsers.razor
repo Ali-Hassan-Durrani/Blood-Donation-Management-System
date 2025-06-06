@@ -1,0 +1,61 @@
+﻿@page "/adminusers"
+@using BloodDonationApp.Components.Shared
+@layout AdminDasboardLayout
+@inject AdminService AdminService
+@rendermode InteractiveServer
+@using UserManager.Models;
+
+<link href="css/admin.css" rel="stylesheet" />
+
+<h3>Manage Users</h3>
+
+<select class="filter-select" @bind="filterRole">
+    <option value="">All</option>
+    <option value="Seeker">Seeker</option>
+    <option value="Donor">Donor</option>
+    <option value="Hospital">Hospital</option>
+    <option value="BloodBank">Blood Bank</option>
+</select>
+
+<table class="table users-table">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in filteredUsers)
+        {
+            <tr>
+                <td>@user.Name</td>
+                <td>@user.Username</td>
+                <td>@user.Role</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.UserID)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<UserModel> users = [];
+    private string filterRole = "";
+
+    private IEnumerable<UserModel> filteredUsers =>
+        string.IsNullOrEmpty(filterRole) ? users : users.Where(u => u.Role == filterRole);
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await AdminService.GetAllUsersAsync();
+    }
+
+    private async Task DeleteUser(int id)
+    {
+        await AdminService.DeleteUserAsync(id);
+        users = await AdminService.GetAllUsersAsync();
+    }
+}

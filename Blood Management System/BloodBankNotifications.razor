@@ -1,0 +1,44 @@
+﻿@page "/bloodbanknotifications"
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@inject NotificationService NotificationService
+@inject UserService UserService
+
+<link href="css/bloodbank-notifications.css" rel="stylesheet" />
+
+<div class="bb-notify-container">
+    <h3 class="bb-notify-title">Notifications</h3>
+
+    @if (notifications == null)
+    {
+        <p class="bb-notify-status">Loading...</p>
+    }
+    else if (!notifications.Any())
+    {
+        <p class="bb-notify-status">No notifications.</p>
+    }
+    else
+    {
+        <ul class="bb-notify-list">
+            @foreach (var note in notifications)
+            {
+                <li class="bb-notify-item">
+                    <span class="bb-notify-message">@note.Message</span>
+                    <span class="bb-notify-date">(@note.CreatedAt.ToShortDateString())</span>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private List<NotificationModel> notifications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var bloodBankId = UserService.CurrentUser?.LinkedID ?? 0;
+        notifications = await NotificationService.GetNotificationsForBloodBankAsync(bloodBankId);
+    }
+}

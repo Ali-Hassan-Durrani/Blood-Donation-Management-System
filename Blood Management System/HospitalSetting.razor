@@ -1,0 +1,58 @@
+﻿@page "/hospitalsetting"
+@layout HospitalDasboardLayout
+@rendermode InteractiveServer
+
+@using HospitalManager.Models
+@inject HospitalService HospitalService
+@inject UserService UserService
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-settings">
+    <h3>Account Details</h3>
+
+    @if (hospital == null)
+    {
+        <p><em>Loading your account details...</em></p>
+    }
+    else
+    {
+        <dl>
+            <dt>Name:</dt>
+            <dd>@hospital.Name</dd>
+
+            <dt>Address:</dt>
+            <dd>@hospital.Address</dd>
+
+            <dt>PhoneNo:</dt>
+            <dd>@hospital.PhoneNo</dd>
+
+            <dt>Location:</dt>
+            <dd>@hospital.Location</dd>
+
+            <dt>Website:</dt>
+            <dd>@hospital.Website</dd>
+
+            <dt>Email:</dt>
+            <dd>@hospital.Email</dd>
+
+            <dt>City:</dt>
+            <dd>@hospital.City</dd>
+        </dl>
+    }
+</div>
+
+@code {
+    private HospitalModel? hospital;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var hospitalId = GetCurrentHospitalId();
+        if (hospitalId > 0)
+        {
+            hospital = await HospitalService.GetHospitalByIdAsync(hospitalId);
+        }
+    }
+
+    private int GetCurrentHospitalId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

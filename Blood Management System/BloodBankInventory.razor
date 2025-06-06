@@ -1,0 +1,48 @@
+﻿@page "/bloodbankinventory"
+@using BloodDonationApp.Components.Shared
+@layout BloodBankDasboardLayout
+@rendermode InteractiveServer
+
+@inject InventoryService InventoryService
+
+@using BloodInventoryManager.Models
+
+<link href="css/BloodBankdashboard.css" rel="stylesheet" />
+
+<h2 class="inventory-header">Blood Inventory Management</h2>
+
+<EditForm Model="@newInventory" OnValidSubmit="AddInventory">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="inventory-form row">
+        <div class="col-md-4">
+            <InputSelect @bind-Value="newInventory.BloodGroup" class="form-control inventory-select">
+                <option value="">-- Select Blood Group --</option>
+                @foreach (var bg in bloodGroups)
+                {
+                    <option value="@bg">@bg</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-4">
+            <InputNumber @bind-Value="newInventory.UnitsAvailable" class="form-control inventory-input" placeholder="Units Available" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Add Inventory</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    Dictionary<string, int> groupCounts = new();
+    BloodInventoryModel newInventory = new();
+    List<string> bloodGroups = new() { "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-" };
+
+
+    private async Task AddInventory()
+    {
+        await InventoryService.AddInventoryAsync(newInventory);
+        newInventory = new();
+    }
+}

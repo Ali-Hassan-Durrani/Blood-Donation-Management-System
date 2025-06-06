@@ -1,0 +1,37 @@
+﻿@using BloodDonationApp.Components.Shared
+@layout WelcomeLayout
+@page "/"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<link href="css/site.css" rel="stylesheet" />
+
+<div class="welcome-container">
+    <div class="image-section">
+        <img src="images/Bloodimage1.jpg" alt="Blood Donation" />
+    </div>
+    <div class="text-section">
+        <h1>Welcome to Blood Donation Management System</h1>
+        <p>Please register first as Seeker, Donor, Hospital or Blood Bank. Then, create your account to log in and access your dashboard.</p>
+
+        <div class="registration-buttons">
+            <button @onclick="@(() => NavigateToRegister("seeker-registration"))">Register as Seeker</button>
+            <button @onclick="@(() => NavigateToRegister("donor-registration"))">Register as Donor</button>
+            <button @onclick="@(() => NavigateToRegister("hospital-registration"))">Register as Hospital</button>
+            <button @onclick="@(() => NavigateToRegister("bloodbank-registration"))">Register as Blood Bank</button>
+        </div>
+
+        <button @onclick="NavigateToLogin">Login</button>
+        <button @onclick="NavigateToSignup">Sign Up</button>
+    </div>
+</div>
+
+@code {
+    private void NavigateToLogin() => NavigationManager.NavigateTo("/login");
+    private void NavigateToSignup() => NavigationManager.NavigateTo("/signup");
+
+    private void NavigateToRegister(string role)
+    {
+        NavigationManager.NavigateTo($"/{role}");
+    }
+}

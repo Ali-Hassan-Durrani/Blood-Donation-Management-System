@@ -1,0 +1,77 @@
+﻿@page "/hospitaldashboard"
+@using BloodDonationApp.Components.Shared
+@layout HospitalDasboardLayout
+@rendermode InteractiveServer
+
+@inject HospitalService HospitalService
+@inject RequestBloodService RequestBloodService
+@inject UserService UserService
+@using HospitalManager.Models
+@using RequestBloodManager.Models
+
+<link href="css/seekerdashboard.css" rel="stylesheet" />
+
+<div class="seeker-dashboard">
+    <h3>Welcome, @hospital?.Name</h3>
+
+    <p>Here is your profile summary:</p>
+
+    @if (hospital != null)
+    {
+        <ul>
+            <li><strong>Blood Group:</strong> @hospital.Address</li>
+            <li><strong>City:</strong> @hospital.City</li>
+            <li><strong>Contact:</strong> @hospital.PhoneNo</li>
+            <li><strong>Registered on:</strong> @hospital.Website</li>
+        </ul>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <h4>Total Requests</h4>
+                <strong>@totalRequests</strong>
+            </div>
+            <div class="card">
+                <h4>Approved</h4>
+                <strong>@approvedCount</strong>
+            </div>
+            <div class="card">
+                <h4>Pending</h4>
+                <strong>@pendingCount</strong>
+            </div>
+            <div class="card">
+                <h4>Rejected</h4>
+                <strong>@rejectedCount</strong>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+@code {
+    private HospitalModel? hospital;
+    private List<RequestBloodModel> myRequests = new();
+    private int totalRequests = 0;
+    private int approvedCount = 0;
+    private int pendingCount = 0;
+    private int rejectedCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var hospitalId = GetCurrentHospitalId();
+        if (hospitalId > 0)
+        {
+            hospital = await HospitalService.GetHospitalByIdAsync(hospitalId);
+
+            myRequests = await RequestBloodService.GetRequestsByRoleAndIdAsync("Hospital",hospitalId);
+            totalRequests = myRequests.Count;
+            approvedCount = myRequests.Count(r => r.Status == "Approved");
+            pendingCount = myRequests.Count(r => r.Status == "Pending");
+            rejectedCount = myRequests.Count(r => r.Status == "Rejected");
+        }
+    }
+
+    private int GetCurrentHospitalId() => UserService.CurrentUser?.LinkedID ?? 0;
+}

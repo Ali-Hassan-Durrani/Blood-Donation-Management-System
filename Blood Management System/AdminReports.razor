@@ -1,0 +1,76 @@
+﻿@page "/adminreports"
+@inject AdminService AdminService
+@using RequestBloodManager.Models
+@layout AdminDasboardLayout
+@rendermode InteractiveServer
+
+<link href="css/admin.css" rel="stylesheet" />
+
+<h3 class="mb-3">Blood Request Reports</h3>
+
+<div class="mb-3 report-filter">
+    <label for="statusFilter">Filter by Status:</label>
+    <select id="statusFilter" class="form-select status-filter" @onchange="FilterByStatus">
+        <option value="">-- All --</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+    </select>
+</div>
+
+@if (requests == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!requests.Any())
+{
+    <p><strong>No records found.</strong></p>
+}
+else
+{
+    <table class="table table-striped table-bordered reports-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Patient Name</th>
+                <th>Required Date</th>
+                <th>Contact</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in requests)
+            {
+                <tr>
+                    <td>@r.FullName</td>
+                    <td>@r.RequesterRole</td>
+                    <td>@r.BloodGroup</td>
+                    <td>@r.City</td>
+                    <td>@r.DonorName</td>
+                    <td>@r.RequiredDate.ToShortDateString()</td>
+                    <td>@r.ContactNumber</td>
+                    <td>@r.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RequestBloodModel>? requests;
+    private string selectedStatus = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        requests = await AdminService.GetBloodRequestsAsync();
+    }
+
+    private async Task FilterByStatus(ChangeEventArgs e)
+    {
+        selectedStatus = e.Value?.ToString() ?? "";
+        requests = await AdminService.GetBloodRequestsAsync(selectedStatus);
+    }
+}

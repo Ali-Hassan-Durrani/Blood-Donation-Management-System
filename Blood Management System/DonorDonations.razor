@@ -1,0 +1,53 @@
+﻿@page "/donordonations"
+@using BloodDonationApp.Components.Shared
+@layout DonorDasboardLayout
+@rendermode InteractiveServer
+
+@inject DonationService DonationService
+@inject UserService UserService
+@using BloodBankManager.Models;
+
+<link href="css/donordashboard.css" rel="stylesheet" />
+
+<div class="donor-donations">
+    <h3>My Donations</h3>
+
+    @if (donations == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!donations.Any())
+    {
+        <p>No donations yet.</p>
+    }
+    else
+    {
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Blood Bank</th>
+                    <th>Donation Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var donation in donations)
+                {
+                    <tr>
+                        <td>@donation.BloodBankName</td>
+                        <td>@donation.DonationDate.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<DonationModel> donations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var donorId = UserService.CurrentUser?.LinkedID ?? 0;
+        donations = await DonationService.GetDonationsByDonorIdAsync(donorId);
+    }
+}

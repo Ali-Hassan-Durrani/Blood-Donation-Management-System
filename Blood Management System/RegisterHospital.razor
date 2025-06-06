@@ -1,0 +1,104 @@
+﻿@using BloodDonationApp.Components.Shared
+@layout HospitalLayout
+@page "/hospital-registration"
+@inject HospitalService HospitalService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@using HospitalManager.Models;
+
+<link href="css/hospital.css" rel="stylesheet" />
+<h3 class="hospital-heading">Hospital Registration</h3>
+
+<EditForm Model="@hospital" OnValidSubmit="HandleValidSubmit" FormName="hospitalForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-container">
+        <div class="form-group">
+            <label>Hospital Name</label>
+            <input placeholder="Hospital Name" @bind="hospital.Name" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Address</label>
+            <input placeholder="Address" @bind="hospital.Address" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input placeholder="Phone No" @bind="hospital.PhoneNo" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Location</label>
+            <input placeholder="Location" @bind="hospital.Location" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Website (optional)</label>
+            <input placeholder="Website" @bind="hospital.Website" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input placeholder="Email" @bind="hospital.Email" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>City</label>
+            <InputSelect @bind-Value="hospital.City" class="form-control">
+                <option value="">-- Select City --</option>
+                @foreach (var city in cities)
+                {
+                    <option value="@city">@city</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="logbtn_group">
+            <button type="submit">Register</button>
+            <button type="submit" @onclick="GoBack">Back</button>
+        </div>
+    </div>
+</EditForm>
+
+@if (isRegistered)
+{
+    <div class="text-success">Blood bank registered successfully!</div>
+}
+
+@code {
+    HospitalModel hospital = new();
+    List<string> cities = new();
+    bool isRegistered = false;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        cities = await HospitalService.GetCitiesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Console.WriteLine("✓ Valid submit received");
+        Console.WriteLine($"  Hospital Name       = '{hospital.Name}'");
+        Console.WriteLine($"  Address            = {hospital.Address}");
+        Console.WriteLine($"  Phone No           = '{hospital.PhoneNo}'");
+        Console.WriteLine($"  Location     = '{hospital.Location}'");
+        Console.WriteLine($"  Webiste      = '{hospital.Website}'");
+        Console.WriteLine($"  Email           = '{hospital.Email}'");
+        Console.WriteLine($"  City         = '{hospital.City}'");
+
+        bool success = await HospitalService.RegisterHospitalAsync(hospital);
+        if (success)
+        {
+            isRegistered = true;
+            hospital = new();
+        }
+    }
+}

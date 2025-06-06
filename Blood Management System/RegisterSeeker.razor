@@ -1,0 +1,148 @@
+﻿@using BloodDonationApp.Components.Shared 
+@layout SeekerLayout 
+@page "/seeker-registration" 
+@inject SeekerService SeekerService 
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@using SeekerManager.Models;
+
+<link href="css/seeker.css" rel="stylesheet" />
+<h3 class="seeker-heading">Seeker Registration</h3>
+
+@if (!dataLoaded)
+{
+    <p>Loading form data...</p>
+}
+else
+{
+    <EditForm Model="@seekerModel" OnValidSubmit="HandleValidSubmit" FormName="seekerForm">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label>Full Name:</label>
+            <input placeholder="First Name" @bind="seekerModel.Name" class="form-control" />
+            <ValidationMessage For="@(() => seekerModel.Name)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>Age:</label>
+            <input type="number" placeholder="Age" @bind="seekerModel.Age" @bind:event="oninput" class="form-control" />
+            <ValidationMessage For="@(() => seekerModel.Age)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>City:</label>
+            <InputSelect class="form-control" @bind-Value="seekerModel.City">
+                <option value="">-- Select City --</option>
+                @foreach (var city in cities)
+                {
+                    <option value="@city">@city</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => seekerModel.City)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>Blood Group:</label>
+            <InputSelect class="form-control" @bind-Value="seekerModel.BloodGroup">
+                <option value="">-- Select Blood Group --</option>
+                @foreach (var bg in bloodGroups)
+                {
+                    <option value="@bg.Value">@bg.Value</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => seekerModel.BloodGroup)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>Contact No:</label>
+            <input placeholder="Contact No" class="form-control" @bind="seekerModel.ContactNo" />
+            <ValidationMessage For="@(() => seekerModel.ContactNo)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>CNIC:</label>
+            <input placeholder="CNIC" class="form-control" @bind="seekerModel.CNIC" />
+            <ValidationMessage For="@(() => seekerModel.CNIC)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>Gender:</label>
+            <InputSelect class="form-control" @bind-Value="seekerModel.Gender">
+                <option value="">-- Select Gender --</option>
+                @foreach (var gender in genders)
+                {
+                    <option value="@gender.Value">@gender.Value</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => seekerModel.Gender)" class="validation-error" />
+        </div>
+
+        <div class="form-group">
+            <label>Registration Date:</label>
+            <input placeholder="Registration date" type="date" class="form-control" @bind="seekerModel.RegistrationDate" />
+            <ValidationMessage For="@(() => seekerModel.RegistrationDate)" class="validation-error" />
+        </div>
+
+        <div class="logbtn_group">
+            <button type="submit">Register</button>
+            <button type="submit" @onclick="GoBack">Back</button>
+        </div>
+    </EditForm>
+
+
+    @if (isRegistered)
+    {
+        <p class="text-success mt-3">Registration successful!</p>
+    }
+}
+
+@code {
+    SeekerModel seekerModel = new();
+    List<string> cities = new();
+    List<KeyValuePair<int, string>> bloodGroups = new();
+    List<KeyValuePair<int, string>> genders = new();
+    bool isRegistered = false;
+    bool dataLoaded = false;
+
+    void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var citiesTask = SeekerService.GetCitiesAsync();
+        var bloodGroupsTask = SeekerService.GetBloodGroupsAsync();
+        var gendersTask = SeekerService.GetGendersAsync();
+
+        await Task.WhenAll(citiesTask, bloodGroupsTask, gendersTask);
+
+        cities = await citiesTask;
+        bloodGroups = await bloodGroupsTask;
+        genders = await gendersTask;
+
+        dataLoaded = true;
+    }
+
+    async Task HandleValidSubmit()
+    {
+        Console.WriteLine("✓ Valid submit received");
+        Console.WriteLine($"  FullName       = '{seekerModel.Name}'");
+        Console.WriteLine($"  Age            = {seekerModel.Age}");
+        Console.WriteLine($"  City           = '{seekerModel.City}'");
+        Console.WriteLine($"  BloodGroup     = '{seekerModel.BloodGroup}'");
+        Console.WriteLine($"  ContactNo      = '{seekerModel.ContactNo}'");
+        Console.WriteLine($"  CNIC           = '{seekerModel.CNIC}'");
+        Console.WriteLine($"  Gender         = '{seekerModel.Gender}'");
+        Console.WriteLine($"  Registration Date         = '{seekerModel.RegistrationDate}'");
+
+        bool success = await SeekerService.RegisterSeekerAsync(seekerModel);
+        if (success)
+        {
+            isRegistered = true;
+            seekerModel = new();
+        }
+    }
+}
